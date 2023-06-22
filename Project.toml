@@ -1,0 +1,13 @@
+name = "ScratchspaceAssets"
+uuid = "5318a24a-cfbb-471b-80de-2ec25d7c2d8b"
+authors = ["Josh Day <emailjoshday@gmail.com> and contributors"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
