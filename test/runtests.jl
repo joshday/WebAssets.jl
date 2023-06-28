@@ -9,8 +9,10 @@ end
 #-----------------------------------------------------------------------------# Test Module
 module Thing
     using ..ScratchspaceAssets
-    using Downloads: download
+    using ..Test
 
+    plotly = ""
+    plotly_latest = ""
 
     function __init__()
         global plotly = @asset "https://cdn.plot.ly/plotly-2.24.0.min.js"
@@ -19,12 +21,17 @@ module Thing
             "https://cdn.plot.ly/plotly-$v.min.js"
         end
     end
+
+    # These are populated in __init__, so these don't exist yet
+    @test !isfile(plotly)
+    @test !isfile(plotly_latest)
 end #module
 
-#-----------------------------------------------------------------------------# @test
+# Now they exits:
 @test isfile(Thing.plotly)
 @test isfile(Thing.plotly_latest)
 
+# cleanup
 @testset "clear_assets!" begin
     clear_assets!()
     @test !isfile(Thing.plotly)
