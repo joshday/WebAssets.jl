@@ -1,13 +1,15 @@
 module ScratchspaceAssets
 
-using Scratch: @get_scratch!
+using Scratch
 using Downloads: download
-using SHA: sha256
 
 export @asset
+# Reexport Scratch.jl
+export Scratch, with_scratch_directory, scratch_dir, get_scratch!, delete_scratch!, clear_scratchspaces!, @get_scratch!
 
 #-----------------------------------------------------------------------------# __init__
-const dir = Ref{String}("")
+const dir = Ref("")
+const loaded_assets = String[]
 
 function __init__()
     dir[] = @get_scratch!(".")
@@ -24,27 +26,18 @@ function github_latest_release(owner::AbstractString, repo::AbstractString)
     extract_semver(read(download(url), String))
 end
 
-#-----------------------------------------------------------------------------# asset!
-function asset!(url::String; force=false)
-    path = joinpath(dir[], string(hash(url), '_', basename(url)))
-    isfile(path) && !force || download(url, path)
-    return path
-end
-asset!(f::Function; force=false) = asset!(f(); force)
-
-clear_assets!(urls::String...) = map(urls) do x
-    rm(path = joinpath(dir[], string(hash(x), '_', basename(x))), force=true)
-end
-clear_assets!() = foreach(x -> rm(joinpath(dir[], x); force=true), readdir(dir[]))
-
-#-----------------------------------------------------------------------------# list_assets
-function assets(pattern = r""; ignore=[".DS_Store"])
-    filter(x -> occursin(pattern, x) && x ∉ ignore, readdir(dir[]))
-end
-
 #-----------------------------------------------------------------------------# @asset
 macro asset(x)
-    esc(:(ScratchspaceAssets.asset!($x)))
+    esc(quote
+        let
+            url = $x isa Base.Callable ? $x() : string($x)
+            path = joinpath(Scratch.@get_scratch!("assets"), string(hash(url), '_', basename(url)))
+            !isfile(path) && download(url, path)
+            push!(ScratchspaceAssets.loaded_assets, path)
+            path
+        end
+    end)
 end
+
 
 end

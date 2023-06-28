@@ -1,39 +1,27 @@
 using Test
-using ScratchspaceAssets: ScratchspaceAssets, @asset, clear_assets!, dir
+using ScratchspaceAssets
+using Downloads: download
 
-@testset "clear_assets!" begin
-    clear_assets!()
-    @test isempty(readdir(dir[]))
-end
+with_scratch_directory(mkpath(joinpath(tempdir(), "ScratchspaceAssetsTests"))) do
+    clear_scratchspaces!()
 
-#-----------------------------------------------------------------------------# Test Module
-module Thing
-    using ..ScratchspaceAssets
-    using ..Test
+    @test isempty(readdir(@get_scratch!(".")))
 
-    plotly = ""
-    plotly_latest = ""
-
-    function __init__()
-        global plotly = @asset "https://cdn.plot.ly/plotly-2.24.0.min.js"
-        global plotly_latest = @asset () -> begin
-            v = ScratchspaceAssets.github_latest_release("plotly", "plotly.js")
-            "https://cdn.plot.ly/plotly-$v.min.js"
-        end
+    plotly = @asset "https://cdn.plot.ly/plotly-2.24.0.min.js"
+    plotly_latest = @asset () -> begin
+        v = ScratchspaceAssets.github_latest_release("plotly", "plotly.js")
+        "https://cdn.plot.ly/plotly-$v.min.js"
     end
 
-    # These are populated in __init__, so these don't exist yet
+    # Now they exist:
+    @test isfile(plotly)
+    @test isfile(plotly_latest)
+
+    # Test that file isn't downloaded again
+    @test @allocated(plotly2 = @asset "https://cdn.plot.ly/plotly-2.24.0.min.js") < 15_000
+
+    # cleanup
+    clear_scratchspaces!()
     @test !isfile(plotly)
     @test !isfile(plotly_latest)
-end #module
-
-# Now they exits:
-@test isfile(Thing.plotly)
-@test isfile(Thing.plotly_latest)
-
-# cleanup
-@testset "clear_assets!" begin
-    clear_assets!()
-    @test !isfile(Thing.plotly)
-    @test !isfile(Thing.plotly_latest)
 end
