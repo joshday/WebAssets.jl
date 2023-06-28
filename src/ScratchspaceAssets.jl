@@ -1,23 +1,20 @@
 module ScratchspaceAssets
 
-using Scratch
+using Scratch: Scratch
 using Downloads: download
 
 export @asset
-# Reexport Scratch.jl
-export Scratch, with_scratch_directory, scratch_dir, get_scratch!, delete_scratch!, clear_scratchspaces!, @get_scratch!
 
 #-----------------------------------------------------------------------------# __init__
 const dir = Ref("")
 const loaded_assets = String[]
 
 function __init__()
-    dir[] = @get_scratch!(".")
+    dir[] = Scratch.@get_scratch!(".")
 end
 
 #-----------------------------------------------------------------------------# utils
 # Extract semantic version number (e.g. `1.2.3`) from a string.
-# TODO include build metadata after `+`
 extract_semver(x::AbstractString) = match(r"(\d+)\.(\d+)\.(\d+)", x).match
 
 # e.g. github_latest_release("plotly", "plotly.js")

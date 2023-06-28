@@ -1,4 +1,5 @@
 using Test
+using Scratch
 using ScratchspaceAssets
 using Downloads: download
 
