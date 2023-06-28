@@ -4,42 +4,47 @@ using Scratch: @get_scratch!
 using Downloads: download
 using SHA: sha256
 
-export StaticAsset, VersionedAsset, @asset_str
+export @asset
 
 #-----------------------------------------------------------------------------# __init__
-dir = Ref{String}()
+const dir = Ref{String}("")
 
 function __init__()
-    dir[] = @get_scratch!("assets")
+    dir[] = @get_scratch!(".")
 end
 
-#-----------------------------------------------------------------------------# @asset_str
-macro asset_str(ex)
-    s = joinpath(dir[], string(ex))
-    :($s)
+#-----------------------------------------------------------------------------# utils
+# Extract semantic version number (e.g. `1.2.3`) from a string.
+# TODO include build metadata after `+`
+extract_semver(x::AbstractString) = match(r"(\d+)\.(\d+)\.(\d+)", x).match
+
+# e.g. github_latest_release("plotly", "plotly.js")
+function github_latest_release(owner::AbstractString, repo::AbstractString)
+    url = "https://api.github.com/repos/$owner/$repo/releases/latest"
+    extract_semver(read(download(url), String))
 end
 
-#-----------------------------------------------------------------------------# StaticAsset
-struct Asset
-    name::String
-    get_url::Union{String, Function}
-    get_latest_version::Union{Nothing, Function}
-    sha256::String
+#-----------------------------------------------------------------------------# asset!
+function asset!(url::String; force=false)
+    path = joinpath(dir[], string(hash(url), '_', basename(url)))
+    isfile(path) && !force || download(url, path)
+    return path
+end
+asset!(f::Function; force=false) = asset!(f(); force)
+
+clear_assets!(urls::String...) = map(urls) do x
+    rm(path = joinpath(dir[], string(hash(x), '_', basename(x))), force=true)
+end
+clear_assets!() = foreach(x -> rm(joinpath(dir[], x); force=true), readdir(dir[]))
+
+#-----------------------------------------------------------------------------# list_assets
+function assets(pattern = r""; ignore=[".DS_Store"])
+    filter(x -> occursin(pattern, x) && x ∉ ignore, readdir(dir[]))
 end
 
-const assets = Dict{String, Asset}()
-
-function register!(; name::String, url, version=nothing)
-    global assets
-    file = url isa String ? download(url) :
-        version isa String ? download(url(version)) : download(url(version()))
-    sha = open(io -> sha256(io), file, "r")
-    haskey(assets, sha) && error("Asset is already registered as \"$(assets[sha].name)\".")
-    any(x -> x.name == name, values(assets)) && error("Asset with name \"$name\" has already been registered.")
-    path = asset_str(name)
-    mv(file, path)
-    assets[sha] = StaticAsset(name, url, sha)
-    path
+#-----------------------------------------------------------------------------# @asset
+macro asset(x)
+    esc(:(ScratchspaceAssets.asset!($x)))
 end
 
 end
