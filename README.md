@@ -13,7 +13,7 @@ and places it in the calling module's scratchspace.
 
 Assets are stored on disk as:
 ```
-.julia/scratchspaces/<calling_module_UUID>/assets/<string(hash(url))><basename(url)>
+.julia/scratchspaces/<calling_module_UUID>/assets/<string(hash(url))>_<basename(url)>
 ```
 
 ```julia
