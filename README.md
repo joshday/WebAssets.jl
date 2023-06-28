@@ -20,7 +20,6 @@ Assets are stored on disk as:
 using ScratchspaceAssets
 # Static URL
 plotly = @asset "https://cdn.plot.ly/plotly-2.24.0.min.js"
-# "/Users/<user>/.julia/scratchspaces/<UUID>/assets/6869591778587603294_plotly-2.24.0.min.js"
 
 # You can also provide a function that returns the URL.
 # This is useful if you always want to pull the latest version of an asset.
