@@ -7,7 +7,7 @@ export @asset
 
 #-----------------------------------------------------------------------------# __init__
 const dir = Ref("")
-const loaded_assets = String[]
+const loaded_assets = Set{String}()
 
 function __init__()
     dir[] = Scratch.@get_scratch!(".")
