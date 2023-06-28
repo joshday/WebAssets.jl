@@ -3,11 +3,11 @@ module ScratchspaceAssets
 using Scratch: Scratch
 using Downloads: download
 
-export @asset
+export @asset, Scratch
 
 #-----------------------------------------------------------------------------# __init__
 const dir = Ref("")
-const loaded_assets = Set{String}()
+const available_assets = Set{String}()
 
 function __init__()
     dir[] = Scratch.@get_scratch!(".")
@@ -30,7 +30,7 @@ macro asset(x)
             url = $x isa Base.Callable ? $x() : string($x)
             path = joinpath(Scratch.@get_scratch!("assets"), string(hash(url), '_', basename(url)))
             !isfile(path) && download(url, path)
-            push!(ScratchspaceAssets.loaded_assets, path)
+            push!(ScratchspaceAssets.available_assets, path)
             path
         end
     end)
