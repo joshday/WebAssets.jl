@@ -9,10 +9,9 @@ with_scratch_directory(mkpath(joinpath(tempdir(), "ScratchspaceAssetsTests"))) d
     @test isempty(readdir(@get_scratch!(".")))
 
     plotly = @asset "https://cdn.plot.ly/plotly-2.24.0.min.js"
-    plotly_latest = @asset () -> begin
-        v = ScratchspaceAssets.github_latest_release("plotly", "plotly.js")
-        "https://cdn.plot.ly/plotly-$v.min.js"
-    end
+
+    get_plotly_latest = () -> ScratchspaceAssets.github_latest_release("plotly", "plotly.js")
+    plotly_latest = @asset get_plotly_latest "https://cdn.plot.ly/plotly-VERSION.min.js"
 
     # Now they exist:
     @test isfile(plotly)
