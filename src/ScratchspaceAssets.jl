@@ -3,7 +3,7 @@ module ScratchspaceAssets
 import Scratch
 import Downloads: download
 
-export @asset
+export @asset, @list
 
 #-----------------------------------------------------------------------------# @asset
 charmap = [':' => 'C', '/' => 'S', '?' => 'Q']
@@ -15,7 +15,7 @@ filename2url(file) = replace(file, reverse.(charmap)...)
 macro asset(url)
     Base.remove_linenums!(esc(quote
         let
-            dir = ScratchspaceAssets.Scratch.get_scratch!($__module__, "ScratchspaceAssets")
+            dir = ScratchspaceAssets.Scratch.get_scratch!($__module__, "__ASSETS__")
             path = joinpath(dir, ScratchspaceAssets.url2filename($url))
             isfile(path) || ScratchspaceAssets.download($url, path)
             path
@@ -30,7 +30,7 @@ end
 macro list(pkg)
     esc(quote
         let
-            dir = ScratchspaceAssets.Scratch.get_scratch!($pkg, "ScratchspaceAssets")
+            dir = ScratchspaceAssets.Scratch.get_scratch!($pkg, "__ASSETS__")
             ScratchspaceAssets.filename2url.(readdir(dir))
         end
     end)
