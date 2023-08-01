@@ -1,28 +1,31 @@
+module ScratchspaceAssetsTests
+
 using Test
 using Scratch
 using ScratchspaceAssets
-using Downloads: download
+S = ScratchspaceAssets
 
 with_scratch_directory(mkpath(joinpath(tempdir(), "ScratchspaceAssetsTests"))) do
     clear_scratchspaces!()
 
-    @test isempty(readdir(@get_scratch!(".")))
+    # start with blank slate
+    dir = get_scratch!(".")
+    @test isempty(readdir(dir))
 
-    plotly = @asset "https://cdn.plot.ly/plotly-2.24.0.min.js"
-
-    get_plotly_latest = () -> ScratchspaceAssets.github_latest_release("plotly", "plotly.js")
-    plotly_latest = @asset get_plotly_latest "https://cdn.plot.ly/plotly-VERSION.min.js"
-
-    # Now they exist:
+    # add asset and test that it exists in the scratchspace
+    url = "https://cdn.plot.ly/plotly-2.24.0.min.js"
+    plotly = @asset url
+    @test !isempty(readdir(dir))
     @test isfile(plotly)
-    @test isfile(plotly_latest)
-    @test length(ScratchspaceAssets.available_assets) == 2
+    @test length(S.@list()) == 1
 
     # Test that file isn't downloaded again
-    @test @allocated(plotly2 = @asset "https://cdn.plot.ly/plotly-2.24.0.min.js") < 15_000
+    @test @allocated(plotly2 = @asset url) < 15_000
 
     # cleanup
     clear_scratchspaces!()
     @test !isfile(plotly)
-    @test !isfile(plotly_latest)
+    @test length(S.@list()) == 0
 end
+
+end #module
