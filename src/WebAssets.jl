@@ -1,17 +1,27 @@
-module ScratchspaceAssets
+module WebAssets
 
 import Scratch
 import Downloads: download
 
 export @asset, @list
 
-#-----------------------------------------------------------------------------# @asset
+#-----------------------------------------------------------------------------# url2filename
 charmap = [':' => 'C', '/' => 'S', '?' => 'Q']
 
 url2filename(url) = replace(lowercase(url), charmap...)
 
 filename2url(file) = replace(file, reverse.(charmap)...)
 
+#-----------------------------------------------------------------------------# StaticAsset
+struct StaticAsset
+    url::String
+end
+
+struct VersionedAsset
+    get_versions::Function
+end
+
+#-----------------------------------------------------------------------------# @asset
 macro asset(url)
     Base.remove_linenums!(esc(quote
         let
