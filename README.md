@@ -1,9 +1,9 @@
-# ScratchspaceAssets
+# WebAssets
 
-[![Build Status](https://github.com/joshday/ScratchspaceAssets.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/joshday/ScratchspaceAssets.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![Build Status](https://github.com/joshday/WebAssets.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/joshday/WebAssets.jl/actions/workflows/CI.yml?query=branch%3Amain)
 
 
-**ScratchspaceAssets** provides a simple mechanism of downloading static files based on a url.
+**WebAssets** provides a simple mechanism of downloading static files based on a url.
 
 
 # Usage
@@ -26,7 +26,7 @@
 # Examples
 
 ```julia
-using ScratchspaceAssets
+using WebAssets
 
 plotly = @asset "https://cdn.plot.ly/plotly-2.24.0.min.js"
 

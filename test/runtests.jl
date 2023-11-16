@@ -1,11 +1,11 @@
-module ScratchspaceAssetsTests
+module WebAssetsTests
 
 using Test
 using Scratch
-using ScratchspaceAssets
-S = ScratchspaceAssets
+using WebAssets
+S = WebAssets
 
-with_scratch_directory(mkpath(joinpath(tempdir(), "ScratchspaceAssetsTests"))) do
+with_scratch_directory(mkpath(joinpath(tempdir(), "WebAssetsTests"))) do
     clear_scratchspaces!()
 
     # start with blank slate

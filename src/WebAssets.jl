@@ -25,23 +25,23 @@ end
 macro asset(url)
     Base.remove_linenums!(esc(quote
         let
-            dir = ScratchspaceAssets.Scratch.get_scratch!($__module__, "__ASSETS__")
-            path = joinpath(dir, ScratchspaceAssets.url2filename($url))
-            isfile(path) || ScratchspaceAssets.download($url, path)
+            dir = WebAssets.Scratch.get_scratch!($__module__, "__ASSETS__")
+            path = joinpath(dir, WebAssets.url2filename($url))
+            isfile(path) || WebAssets.download($url, path)
             path
         end
     end))
 end
 
 macro list()
-    esc(:(ScratchspaceAssets.@list($__module__)))
+    esc(:(WebAssets.@list($__module__)))
 end
 
 macro list(pkg)
     esc(quote
         let
-            dir = ScratchspaceAssets.Scratch.get_scratch!($pkg, "__ASSETS__")
-            ScratchspaceAssets.filename2url.(readdir(dir))
+            dir = WebAssets.Scratch.get_scratch!($pkg, "__ASSETS__")
+            WebAssets.filename2url.(readdir(dir))
         end
     end)
 end
