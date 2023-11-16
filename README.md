@@ -8,35 +8,18 @@
 
 # Usage
 
-- The `@asset` macro uses functionality provided by [Scratch.jl](https://github.com/JuliaPackaging/Scratch.jl) to download the provided url (if it hasn't already been downloaded):
-- The file at the provided url will be placed in the scratchspace of the calling module, e.g. `~/.julia/scratchspaces/<UUID_of_calling_module>/__ASSETS__/<file>`
+## `@asset`
+
+- The `@asset` macro returns the local file path of a downloaded url.
 
 ```julia
-@asset url
+# .julia/scratchspaces/<UUID_of_calling_module>/__ASSETS__/
+plotly = @asset "https://cdn.plot.ly/plotly-2.27.0.min.js"
 ```
+- The file at the provided url will be downloaded to the directory `/.julia/scratchspaces/<UUID_of_calling_module>/__web_assets__`
 
-- The `@list` macro lets you view which urls have already been downloaded:
+## `@versioned_asset get_versions()::Vector{T} get_url(::T)`
 
-```julia
-@list
+## `@list <module>`
 
-@list SomeModule
-```
-
-# Examples
-
-```julia
-using WebAssets
-
-plotly = @asset "https://cdn.plot.ly/plotly-2.24.0.min.js"
-
-# get latest version of Plotly
-
-using JSON3, HTTP
-
-function plotly_latest()
-    res = HTTP.get("https://api.github.com/repos/plotly/plotly.js/releases/latest")
-    latest = VersionNumber(JSON3.read(res.body).name)
-    @asset "https://cdn.plot.ly/plotly-$latest.min.js"
-end
-```
+- Return a `Vector{String}` of the provided module's `@asset`s.

@@ -5,6 +5,9 @@ import Downloads: download
 
 export @asset, @list
 
+#-----------------------------------------------------------------------------# settings
+scratchdir = "__web_assets__"
+
 #-----------------------------------------------------------------------------# url2filename
 charmap = [':' => 'C', '/' => 'S', '?' => 'Q']
 
@@ -12,20 +15,17 @@ url2filename(url) = replace(lowercase(url), charmap...)
 
 filename2url(file) = replace(file, reverse.(charmap)...)
 
-#-----------------------------------------------------------------------------# StaticAsset
-struct StaticAsset
-    url::String
-end
-
+#-----------------------------------------------------------------------------# VersionedAsset
 struct VersionedAsset
     get_versions::Function
+    get_url::Function
 end
 
 #-----------------------------------------------------------------------------# @asset
 macro asset(url)
     Base.remove_linenums!(esc(quote
         let
-            dir = WebAssets.Scratch.get_scratch!($__module__, "__ASSETS__")
+            dir = WebAssets.Scratch.get_scratch!($__module__, WebAssets.scratchdir)
             path = joinpath(dir, WebAssets.url2filename($url))
             isfile(path) || WebAssets.download($url, path)
             path
@@ -40,7 +40,7 @@ end
 macro list(pkg)
     esc(quote
         let
-            dir = WebAssets.Scratch.get_scratch!($pkg, "__ASSETS__")
+            dir = WebAssets.Scratch.get_scratch!($pkg, WebAssets.scratchdir)
             WebAssets.filename2url.(readdir(dir))
         end
     end)

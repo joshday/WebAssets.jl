@@ -3,7 +3,6 @@ module WebAssetsTests
 using Test
 using Scratch
 using WebAssets
-S = WebAssets
 
 with_scratch_directory(mkpath(joinpath(tempdir(), "WebAssetsTests"))) do
     clear_scratchspaces!()
@@ -17,15 +16,26 @@ with_scratch_directory(mkpath(joinpath(tempdir(), "WebAssetsTests"))) do
     plotly = @asset url
     @test !isempty(readdir(dir))
     @test isfile(plotly)
-    @test length(S.@list()) == 1
+    @test length(WebAssets.@list()) == 1
 
     # Test that file isn't downloaded again
+    @test @allocated(plotly2 = @asset url) < 15_000
+
+    clear_scratchspaces!()
+    # test that string interpolation works
+    v = "2.24.0"
+    url = "https://cdn.plot.ly/plotly-$v.min.js"
+    plotly = @asset url
+    @test !isempty(readdir(dir))
+    @test isfile(plotly)
+    @test length(WebAssets.@list()) == 1
+
     @test @allocated(plotly2 = @asset url) < 15_000
 
     # cleanup
     clear_scratchspaces!()
     @test !isfile(plotly)
-    @test length(S.@list()) == 0
+    @test length(WebAssets.@list()) == 0
 end
 
 end #module
