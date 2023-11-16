@@ -11,7 +11,7 @@
 - The `@asset` macro returns the local file path of a downloaded url (inside module's scratchspace).
 
 ```julia
-# .julia/scratchspaces/<UUID_of_calling_module>/__ASSETS__/
+# .julia/scratchspaces/<UUID_of_calling_module>/__ASSETS__/<stringified_url>
 plotly = @asset "https://cdn.plot.ly/plotly-2.27.0.min.js"
 ```
 
