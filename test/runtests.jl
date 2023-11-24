@@ -30,6 +30,12 @@ with_scratch_directory(mkpath(joinpath(tempdir(), "WebAssetsTests"))) do
         plotly3 = @asset "https://cdn.plot.ly/plotly-$v.min.js"
         @test isfile(plotly3)
         @test length(WebAssets.@list()) == 2
+
+        # different asset with function
+        get_url() = "https://cdn.plot.ly/plotly-2.27.0.min.js"
+        plotly4 = @asset get_url()
+        @test isfile(plotly4)
+        @test length(WebAssets.@list()) == 3
     end
 end
 

@@ -29,13 +29,10 @@ function asset(mod::Module, url::AbstractString)
     return path
 end
 
-asset(mod::Module, f::Function) = asset(mod, f())
-
-
 """
     @asset url
 
-Download the asset at `url` and return the path to the downloaded file.
+Download the asset at `url` (to the calling module's scratchspace) and return the path to the downloaded file.
 If the asset has already been downloaded, the cached version will be returned.
 """
 macro asset(url)
