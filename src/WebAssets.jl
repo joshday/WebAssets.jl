@@ -3,64 +3,59 @@ module WebAssets
 import Scratch
 import Downloads: download
 
-export @asset, @list
+export add!, remove!, list, update!
 
-#-----------------------------------------------------------------------------# settings
-"Subdirectory of the scratch directory to store assets in."
-scratchdir = "WebAssets_jl"
+#-----------------------------------------------------------------------------# __init__
+const DIR = Ref{String}()
+
+function __init__()
+    DIR[] = Scratch.@get_scratch!("registry")
+end
 
 #-----------------------------------------------------------------------------# url2filename
 charmap = [':' => 'C', '/' => 'S', '?' => 'Q']
-
 url2filename(url) = replace(lowercase(url), charmap...)
-
 filename2url(file) = replace(file, reverse.(charmap)...)
 
+#-----------------------------------------------------------------------------# dir!
+dir!(newdir::String = Scratch.@get_scratch!("registry")) = (DIR[] = newdir)
 
-#-----------------------------------------------------------------------------# macros
-function asset(mod::Module, url::AbstractString)
-    dir = Scratch.get_scratch!(mod, scratchdir)
-    path = joinpath(dir, url2filename(url))
+
+#-----------------------------------------------------------------------------# add!
+function add!(url::String; dir=DIR[])
     try
-        isfile(path) || WebAssets.download(url, path)
+        path = joinpath(dir, url2filename(url))
+        isfile(path) || download(url, path)
+        return path
     catch
-        error("`@asset \"$url\"` failed to download.  Check the URL and your internet connection.")
+        error("add!(\"$url\") failed.  Check the URL and your internet connection.")
     end
-    return path
 end
 
-"""
-    @asset url
-
-Download the asset at `url` (to the calling module's scratchspace) and return the path to the downloaded file.
-If the asset has already been downloaded, the cached version will be returned.
-"""
-macro asset(url)
-    esc(:(WebAssets.asset($__module__, $url)))
+#-----------------------------------------------------------------------------# remove!
+function remove!(url::String; dir = DIR[])
+    path = joinpath(dir, url2filename(url))
+    isfile(path) ? rm(path) : error("No such asset: \"$url\"")
+    return list()
 end
 
 
-"""
-    @list
+#-----------------------------------------------------------------------------# list
+list(; dir = DIR[]) = filename2url.(readdir(dir))
 
-Return a list of all assets (downloaded via the `@asset` macro) of the current module.
-"""
-macro list()
-    esc(:(WebAssets.@list($__module__)))
+#-----------------------------------------------------------------------------# update!
+function update!(url::String; dir=DIR[])
+    remove!(url; dir)
+    add!(url; dir)
+    list(; dir)
 end
 
-"""
-    @list pkg
-
-Return a list of all assets (downloaded via the `@asset` macro) of the module `pkg`.
-"""
-macro list(pkg)
-    esc(quote
-        let
-            dir = WebAssets.Scratch.get_scratch!($pkg, WebAssets.scratchdir)
-            WebAssets.filename2url.(readdir(dir))
-        end
-    end)
+function update!(; dir=DIR[])
+    for url in list(dir=dir)
+        @info "Updating: $url"
+        update!(url; dir=dir)
+    end
+    list(; dir)
 end
 
 end
