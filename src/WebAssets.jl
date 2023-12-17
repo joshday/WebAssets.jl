@@ -3,8 +3,6 @@ module WebAssets
 import Scratch
 import Downloads: download
 
-export add!, remove!, list, update!
-
 #-----------------------------------------------------------------------------# __init__
 const DIR = Ref{String}()
 
@@ -56,6 +54,14 @@ function update!(; dir=DIR[])
         update!(url; dir=dir)
     end
     list(; dir)
+end
+
+#-----------------------------------------------------------------------------# VersionedAsset
+struct VersionedAsset
+    url::String
+    function VersionedAsset(url::String)
+        @assert ('{' in url) && ('}' in url)
+    end
 end
 
 end
