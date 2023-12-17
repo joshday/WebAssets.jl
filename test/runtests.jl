@@ -23,6 +23,9 @@ add!(url)
 
 @test list() == [url]
 
+update!()
+update!(url)
+
 foreach(remove!, list())
 
 end #module
