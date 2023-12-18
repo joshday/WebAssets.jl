@@ -15,7 +15,13 @@ struct Project
     dir::String
     registry::Dict{Symbol, String}
 end
-Project(dir::String) = Project(dir, Dict{Symbol, String}())
+function Project(dir::String; kw...)
+    out = Project(dir, Dict{Symbol, String}())
+    for (k,v) in kw
+        setproperty!(out, k, v)
+    end
+    return out
+end
 
 dir(p::Project) = getfield(p, :dir)
 registry(p::Project) = getfield(p, :registry)
@@ -76,7 +82,7 @@ macro project(x...)
 
     esc(quote
         let
-            proj = WebAssets.Project(WebAssets.Scratch.@get_scratch!("web_assets_jl"))
+            proj = WebAssets.Project(WebAssets.Scratch.@get_scratch!("WebAssets_jl"))
             $(x2...)
             proj
         end

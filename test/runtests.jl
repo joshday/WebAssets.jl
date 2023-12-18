@@ -4,8 +4,8 @@ using Test
 using Scratch
 using WebAssets
 
-delete_scratch!(WebAssetsTests, "web_assets_jl")
-delete_scratch!(WebAssetsTests, "web_assets_jl2")
+delete_scratch!(WebAssetsTests, "WebAssets_jl")
+delete_scratch!(WebAssetsTests, "WebAssets_jl2")
 
 a = @project(
     plotlyjs = "https://cdn.plot.ly/plotly-2.24.0.min.js",
@@ -21,7 +21,7 @@ b.katexjs = "https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js"
 @test WebAssets.registry(a) != WebAssets.registry(b)
 @test a == b
 
-@test WebAssets.dir(a) == @get_scratch!("web_assets_jl")
+@test WebAssets.dir(a) == @get_scratch!("WebAssets_jl")
 @test length(WebAssets.registry(a)) == 3
 
 plotly_url = WebAssets.url(a, :plotlyjs)

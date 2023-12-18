@@ -5,31 +5,38 @@
 
 **WebAssets** provides a simple API for managing local versions of files based on URLs.
 
+If you squint it kinda looks like a lightweight, narrower-scope [DataDeps.jl](https://github.com/oxinabox/DataDeps.jl).
 
 # Usage
 
 
 ```julia
-path = mkpath(joinpath(tempdir(), "my_assets"))
+proj = @project(
+    plotlyjs = "https://cdn.plot.ly/plotly-2.24.0.min.js",
+    katexcss = "https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css",
+)
 
-using WebAssets: dir!, add!, list, update!, remove!
+# Use assets:
+proj.plotlyjs  # path to local file (file will be downloaded if necessary)
 
-# Change directory where local versions are saved.
-# Default directory is the WebAssets.jl scratchspace (see Scratch.jl)
-dir!(path)
+# Add more assets
+proj.katexjs = "https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js"
 
-# Download (if necessary) and return local file path.
-add!("https://cdn.plot.ly/plotly-2.27.0.min.js")
+# Delete assets
+proj.katexjs = nothing  # same as `delete!(proj, :katexjs)`
 
-# Get vector of `add!`-ed URLs
-list()
+# Re-download assets
+WebAssets.update!(proj, :plotlyjs)
+WebAssets.update!()  # Re-download everything in project
+```
 
-# Re-download everything in list()
-update!()
 
-# Re-download a specific URL
-update!("https://cdn.plot.ly/plotly-2.27.0.min.js")
+# Details
 
-# Remove the local file
-remove!("https://cdn.plot.ly/plotly-2.27.0.min.js")
+- Files are saved in the calling module's scratchspace.
+    - See [Scratch.jl](https://github.com/JuliaPackaging/Scratch.jl) for details.
+- `Project(directory::String)` is the lower-level struct that determines where assets are stored locally.
+
+```julia
+@project(kw...)  # Same as Project(@get_scratch!("WebAssets_jl"), kw...)
 ```
