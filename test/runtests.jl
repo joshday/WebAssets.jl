@@ -3,30 +3,44 @@ module WebAssetsTests
 using Test
 using Scratch
 using WebAssets
-using WebAssets: add!, remove!, list, update!, dir!, url2filename, filename2url
 
-url = "HTTPS://cdn.plot.ly/plotly-2.24.0.min.js"
+delete_scratch!(WebAssetsTests, "web_assets_jl")
+delete_scratch!(WebAssetsTests, "web_assets_jl2")
 
-file = url2filename(url)
-@test file == "httpsCSScdn.plot.lySplotly-2.24.0.min.js"
-@test filename2url(file) == lowercase(url)
+a = @project(
+    plotlyjs = "https://cdn.plot.ly/plotly-2.24.0.min.js",
+    katexcss = "https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css",
+    katexjs = "https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js"
+)
 
+b = Project(@get_scratch!("web_assets_jl2"))
+b.plotlyjs = "https://cdn.plot.ly/plotly-2.24.0.min.js"
+b.katexcss = "https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+b.katexjs = "https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js"
 
-path = mkpath(joinpath(tempdir(), "WebAssets_jl_tests"))
+@test WebAssets.registry(a) != WebAssets.registry(b)
+@test a == b
 
-dir!(path)
-foreach(remove!, list())
+@test WebAssets.dir(a) == @get_scratch!("web_assets_jl")
+@test length(WebAssets.registry(a)) == 3
 
-@test WebAssets.DIR[] == path
-@test list() == []
+plotly_url = WebAssets.url(a, :plotlyjs)
+@test plotly_url == "https://cdn.plot.ly/plotly-2.24.0.min.js"
 
-add!(url)
+a.plotlyjs = nothing
+@test length(WebAssets.registry(a)) == 2
+@test_throws Exception a.plotlyjs
 
-@test list() == [lowercase(url)]
+delete!(b, :plotlyjs)
 
-update!()
-update!(url)
+@test a == b
 
-foreach(remove!, list())
+# Test info statements printed during update!
+@test_logs (:info,) WebAssets.update!(a, :katexjs)
+@test_logs (:info,) (:info,) WebAssets.update!(a)
+
+# Asset only downloads on first setindex!
+@test_logs (:info,) a.plotlyjs = "https://cdn.plot.ly/plotly-2.24.0.min.js"
+@test_logs a.plotlyjs = "https://cdn.plot.ly/plotly-2.24.0.min.js"
 
 end #module
