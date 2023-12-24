@@ -7,6 +7,11 @@ using WebAssets
 delete_scratch!(WebAssetsTests, "WebAssets_jl")
 delete_scratch!(WebAssetsTests, "WebAssets_jl2")
 
+let
+    v = "2.24.0"
+    @test @project(plotly = "https://cdn.plot.ly/plotly-$v.min.js") isa Project
+end
+
 a = @project(
     plotlyjs = "https://cdn.plot.ly/plotly-2.24.0.min.js",
     katexcss = "https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css",

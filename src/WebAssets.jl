@@ -55,6 +55,11 @@ end
 
 Base.getproperty(p::Project, name::Symbol) = registry(p)[name]
 
+function Base.empty!(p::Project)
+    for name in propertynames(p)
+        delete!(p, name)
+    end
+end
 
 function Base.delete!(p::Project, name::Symbol)
     rm(getproperty(p, name))
@@ -74,7 +79,7 @@ update!(p::Project) = foreach(x -> update!(p, x), propertynames(p))
 #-----------------------------------------------------------------------------# @project
 macro project(x...)
     x2 = map(x) do x
-        x isa Expr && x.head == :(=) && x.args[1] isa Symbol && x.args[2] isa String ||
+        x isa Expr && x.head == :(=) && x.args[1] isa Symbol ||
             error("Arguments to @project are expected to be of the form: `name = \"url\"`.  Found: `$x`")
         x.args[1] = Expr(:., :proj, QuoteNode(x.args[1]))
         x

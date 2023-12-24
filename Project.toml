@@ -1,7 +1,7 @@
 name = "WebAssets"
 uuid = "5318a24a-cfbb-471b-80de-2ec25d7c2d8b"
 authors = ["Josh Day <emailjoshday@gmail.com> and contributors"]
-version = "0.3.0"
+version = "0.3.1"
 
 [deps]
 Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
