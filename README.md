@@ -5,10 +5,7 @@
 
 **WebAssets** provides a simple API for managing local versions of files based on URLs.
 
-If you squint it kinda looks like a lightweight, narrower-scope [DataDeps.jl](https://github.com/oxinabox/DataDeps.jl).
-
 # Usage
-
 
 ```julia
 proj = @project(
@@ -16,8 +13,8 @@ proj = @project(
     katexcss = "https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css",
 )
 
-# Use assets:
-proj.plotlyjs  # path to local file (file will be downloaded if necessary)
+# Get local path to asset
+proj.plotlyjs
 
 # Add more assets
 proj.katexjs = "https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js"

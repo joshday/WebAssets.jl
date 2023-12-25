@@ -13,21 +13,16 @@ filename2url(file) = replace(file, reverse.(charmap)...)
 #-----------------------------------------------------------------------------# Project
 struct Project
     dir::String
-    registry::Dict{Symbol, String}
+    registry::Dict{Symbol, String}  # name => url
 end
-function Project(dir::String; kw...)
-    out = Project(dir, Dict{Symbol, String}())
-    for (k,v) in kw
-        setproperty!(out, k, v)
-    end
-    return out
-end
+Project(dir::String; kw...) = Project(dir, Dict{Symbol, String}(kw))
 
 dir(p::Project) = getfield(p, :dir)
 registry(p::Project) = getfield(p, :registry)
-url(p::Project, name::Symbol) = filename2url(basename(getproperty(p, name)))
 
-Base.:(==)(a::Project, b::Project) = propertynames(a) == propertynames(b) && all(url(a, x) == url(b, x) for x in propertynames(a))
+function Base.:(==)(a::Project, b::Project)
+    propertynames(a) == propertynames(b) && all(getproperty(a,x) == getproperty(b,x) for x in propertynames(a))
+end
 
 function Base.show(io::IO, p::Project)
     print(io, "Project")
@@ -38,27 +33,25 @@ function Base.show(io::IO, p::Project)
     end
 end
 
-Base.propertynames(p::Project) = collect(keys(registry(p)))
-
-function Base.setproperty!(p::Project, name::Symbol, url::String)
+# core function:
+function get_asset(path::String, url::String)
     try
-        path = joinpath(dir(p), url2filename(url))
         if !isfile(path)
             @info "WebAssets - Downloading: $url"
             download(url, path)
         end
-        registry(p)[name] = path
+        return path
     catch
         error("\"$url\" failed to download.  Check the URL and your internet connection.")
     end
 end
 
-Base.getproperty(p::Project, name::Symbol) = registry(p)[name]
+Base.propertynames(p::Project) = collect(keys(registry(p)))
 
-function Base.empty!(p::Project)
-    for name in propertynames(p)
-        delete!(p, name)
-    end
+Base.getproperty(p::Project, name::Symbol) = get_asset(p, registry(p)[name])
+
+function Base.setproperty!(p::Project, name::Symbol, url::String)
+    registry(p)[name] = url
 end
 
 function Base.delete!(p::Project, name::Symbol)
