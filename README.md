@@ -8,32 +8,18 @@
 # Usage
 
 ```julia
-proj = @project(
-    plotlyjs = "https://cdn.plot.ly/plotly-2.24.0.min.js",
-    katexcss = "https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css",
-)
+using WebAssets: @add, @list, @remove
 
-# Get local path to asset
-proj.plotlyjs
-
-# Add more assets
-proj.katexjs = "https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js"
-
-# Delete assets
-proj.katexjs = nothing  # same as `delete!(proj, :katexjs)`
-
-# Re-download assets
-WebAssets.update!(proj, :plotlyjs)
-WebAssets.update!()  # Re-download everything in project
-```
+# Download file (if necessary) to scratchspace and return the path
+plotlyjs = @add "https://cdn.plot.ly/plotly-2.24.0.min.js"
 
 
-# Details
+# List assets
+@list()
+# 1-element Vector{String}:
+#  "/Users/<user>/.julia/scratchsp" ⋯ 64 bytes ⋯ "dn.plot.lySplotly-2.24.0.min.js"
 
-- Files are saved in the calling module's scratchspace.
-    - See [Scratch.jl](https://github.com/JuliaPackaging/Scratch.jl) for details.
-- `Project(directory::String)` is the lower-level struct that determines where assets are stored locally.
 
-```julia
-@project(kw...)  # Same as Project(@get_scratch!("WebAssets_jl"), kw...)
+# Delete the downloaded file
+@remove "https://cdn.plot.ly/plotly-2.24.0.min.js"
 ```
