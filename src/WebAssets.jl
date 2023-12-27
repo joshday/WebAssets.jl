@@ -3,6 +3,8 @@ module WebAssets
 import Downloads: download
 using Scratch
 
+export @add, @list, @remove
+
 #-----------------------------------------------------------------------------# scratch_dir
 const scratch_dir = "WebAssets_jl"
 
