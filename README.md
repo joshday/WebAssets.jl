@@ -17,7 +17,7 @@ plotlyjs = @add "https://cdn.plot.ly/plotly-2.24.0.min.js"
 # List assets
 @list()
 # 1-element Vector{String}:
-#  "/Users/<user>/.julia/scratchsp" ⋯ 64 bytes ⋯ "dn.plot.lySplotly-2.24.0.min.js"
+#  "https://cdn.plot.ly/plotly-2.24.0.min.js"
 
 
 # Delete the downloaded file

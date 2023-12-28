@@ -54,12 +54,7 @@ end
 #-----------------------------------------------------------------------------# @list
 macro list()
     esc(quote
-        let
-            path = WebAssets.@path
-            map(readdir(path)) do x
-                joinpath(path, x)
-            end
-        end
+        map(WebAssets.filename2url, readdir(WebAssets.@path))
     end)
 end
 
