@@ -17,11 +17,15 @@ b = @add url
 
 @test isfile(a)
 
+@test_logs (:info, "WebAssets - Downloading: $url") @update url
+
 @test @list() == [url]
 
 @remove url
 
 @test !isfile(a)
 @test isempty(@list())
+
+@update()
 
 end #module

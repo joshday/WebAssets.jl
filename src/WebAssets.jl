@@ -3,7 +3,7 @@ module WebAssets
 import Downloads: download
 using Scratch
 
-export @add, @list, @remove
+export @add, @list, @remove, @update
 
 #-----------------------------------------------------------------------------# scratch_dir
 const scratch_dir = "WebAssets_jl"
@@ -55,6 +55,22 @@ end
 macro list()
     esc(quote
         map(WebAssets.filename2url, readdir(WebAssets.@path))
+    end)
+end
+
+#-----------------------------------------------------------------------------# @update
+macro update(url)
+    esc(quote
+        WebAssets.@remove url
+        WebAssets.@add url
+    end)
+end
+
+macro update()
+    esc(quote
+        for url in WebAssets.@list()
+            WebAssets.@update url
+        end
     end)
 end
 
