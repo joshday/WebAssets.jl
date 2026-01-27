@@ -3,7 +3,7 @@
 [![Build Status](https://github.com/joshday/WebAssets.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/joshday/WebAssets.jl/actions/workflows/CI.yml?query=branch%3Amain)
 
 
-**WebAssets** provides a simple API for managing local versions of files based on URLs.
+**WebAssets** provides a simple API for managing local versions of files based on URLs.  Files are cached in your scratchspace for future use.
 
 ## Usage
 
@@ -30,28 +30,17 @@ WebAssets.add("https://cdn.plot.ly/plotly-2.24.0.min.js"; force=true)
 WebAssets.remove("https://cdn.plot.ly/plotly-2.24.0.min.js")
 ```
 
-## Using a Package's Scratch Space
+## Using a Different Package's Scratchspace
 
-Other packages can use WebAssets to manage assets in their own scratchspace by passing their module as the first argument:
+- Methods that accept a `Module` argument are available for managing assets within a specific scratchspace (default is `Main`).
+- Alternativly, set the `WebAssets.MODULE` Ref, e.g. `WebAssets.MODULE[] = @__MODULE__`.
 
 ```julia
-module MyPackage
+WebAssets.add(@__MODULE__, "https://example.com/asset.js")
 
-using WebAssets
-
-function __init__()
-    # Downloads to MyPackage's scratch space
-    WebAssets.add(@__MODULE__, "https://example.com/asset.js")
-end
-
-# List assets in MyPackage's scratch space
 WebAssets.list(@__MODULE__)
 
-# Get info for MyPackage's assets
 WebAssets.info(@__MODULE__)
 
-# Remove from MyPackage's scratch space
 WebAssets.remove(@__MODULE__, "https://example.com/asset.js")
-
-end
 ```

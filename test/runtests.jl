@@ -14,9 +14,18 @@ module TestPkg end
     end
 
     @testset "dir" begin
-        @test isdir(WebAssets.dir())
+        # dir with explicit module
+        @test isdir(WebAssets.dir(Main))
         @test isdir(WebAssets.dir(TestPkg))
-        @test WebAssets.dir() != WebAssets.dir(TestPkg)
+        # Unregistered modules (without package UUID) share the same scratch space
+        @test WebAssets.dir(Main) == WebAssets.dir(TestPkg)
+    end
+
+    @testset "MODULE ref" begin
+        # Set the default module
+        WebAssets.MODULE[] = Main
+        @test WebAssets.MODULE[] === Main
+        @test WebAssets.dir() == WebAssets.dir(Main)
     end
 
     @testset "url2filename / filename2url round-trip" begin
@@ -46,6 +55,9 @@ module TestPkg end
     end
 
     @testset "url2path / path2url round-trip" begin
+        # Ensure MODULE is set for dir() to work
+        WebAssets.MODULE[] = Main
+
         url = "https://example.com/style.css"
 
         # Default directory
@@ -62,6 +74,9 @@ module TestPkg end
     end
 
     @testset "add, list, remove" begin
+        # Ensure MODULE is set for functions without explicit module
+        WebAssets.MODULE[] = Main
+
         test_url = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
 
         # Clean up if exists from previous test
@@ -94,6 +109,9 @@ module TestPkg end
     end
 
     @testset "info" begin
+        # Ensure MODULE is set
+        WebAssets.MODULE[] = Main
+
         test_url = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
 
         # Clean up and add
@@ -131,14 +149,11 @@ module TestPkg end
         WebAssets.remove(TestPkg, test_url)
         @test lowercase(test_url) ∉ WebAssets.list(TestPkg)
 
-        # Add to TestPkg's scratch space
+        # Add using Module argument
         path = WebAssets.add(TestPkg, test_url)
         @test isfile(path)
         @test startswith(path, WebAssets.dir(TestPkg))
         @test lowercase(test_url) ∈ WebAssets.list(TestPkg)
-
-        # Verify it's not in the default WebAssets space
-        @test lowercase(test_url) ∉ WebAssets.list()
 
         # Test info with Module
         infos = WebAssets.info(TestPkg)
@@ -152,7 +167,7 @@ module TestPkg end
         @test path == path2
         @test mtime(path2) > mtime_before
 
-        # Remove from TestPkg's scratch space
+        # Remove using Module argument
         WebAssets.remove(TestPkg, test_url)
         @test !isfile(path)
         @test lowercase(test_url) ∉ WebAssets.list(TestPkg)

@@ -5,9 +5,10 @@ using Dates, Scratch, StyledStrings
 
 export @add, @list, @remove, @update
 
+#-----------------------------------------------------------------------------# dir
+const MODULE = Ref(Main)
 
-dir() = Scratch.@get_scratch!("WebAssets_jl")
-dir(m::Module) = Scratch.get_scratch!(m, "assets")
+dir(m::Module = MODULE[]) = Scratch.get_scratch!(m, "WebAssets_jl")
 
 #-----------------------------------------------------------------------------# url2filename
 const charmap = (':' => 'C', '/' => 'S', '?' => 'Q', '{' => 'L', '}' => 'R', '#' => 'H', '%' => 'P',
