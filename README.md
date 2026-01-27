@@ -5,24 +5,53 @@
 
 **WebAssets** provides a simple API for managing local versions of files based on URLs.
 
-# Usage
+## Usage
 
 ```julia
-using WebAssets: @add, @list, @remove
+using WebAssets
 
 # Download file (if necessary) to scratchspace and return the path
-plotlyjs = @add "https://cdn.plot.ly/plotly-2.24.0.min.js"
+path = WebAssets.add("https://cdn.plot.ly/plotly-2.24.0.min.js")
 
-
-# List assets
-@list()
+# List asset URLs
+WebAssets.list()
 # 1-element Vector{String}:
 #  "https://cdn.plot.ly/plotly-2.24.0.min.js"
 
+# Get info about downloaded assets
+WebAssets.info()
+# 1-element Vector{WebAssets.Info}:
+#  https://cdn.plot.ly/plotly-2.24.0.min.js 2026-01-27T14:55:07.216 3.420 MiB
 
 # Force a re-download
-@update "https://cdn.plot.ly/plotly-2.24.0.min.js"
+WebAssets.add("https://cdn.plot.ly/plotly-2.24.0.min.js"; force=true)
 
 # Delete the downloaded file
-@remove "https://cdn.plot.ly/plotly-2.24.0.min.js"
+WebAssets.remove("https://cdn.plot.ly/plotly-2.24.0.min.js")
+```
+
+## Using a Package's Scratch Space
+
+Other packages can use WebAssets to manage assets in their own scratchspace by passing their module as the first argument:
+
+```julia
+module MyPackage
+
+using WebAssets
+
+function __init__()
+    # Downloads to MyPackage's scratch space
+    WebAssets.add(@__MODULE__, "https://example.com/asset.js")
+end
+
+# List assets in MyPackage's scratch space
+WebAssets.list(@__MODULE__)
+
+# Get info for MyPackage's assets
+WebAssets.info(@__MODULE__)
+
+# Remove from MyPackage's scratch space
+WebAssets.remove(@__MODULE__, "https://example.com/asset.js")
+
+end
 ```
