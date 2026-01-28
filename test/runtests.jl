@@ -108,6 +108,80 @@ module TestPkg end
         WebAssets.remove(test_url)
     end
 
+    @testset "list with domain and subdomain filters" begin
+        WebAssets.MODULE[] = Main
+
+        # Test URLs with different domains and subdomains
+        urls = [
+            "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css",
+            "https://unpkg.com/react@18/umd/react.production.min.js",
+            "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js",
+            "https://ga.jspm.io/npm:es-module-shims@1.5.1/dist/es-module-shims.js",
+        ]
+
+        # Clean up and add all test URLs
+        for url in urls
+            WebAssets.remove(url)
+        end
+        for url in urls
+            WebAssets.add(url)
+        end
+
+        # Test no filters returns all
+        all_urls = WebAssets.list()
+        for url in urls
+            @test lowercase(url) ∈ all_urls
+        end
+
+        # Test domain filter
+        jsdelivr_urls = WebAssets.list(domain="jsdelivr.net")
+        @test length(filter(u -> occursin("jsdelivr.net", u), jsdelivr_urls)) >= 1
+        @test !any(u -> occursin("unpkg.com", u), jsdelivr_urls)
+        @test !any(u -> occursin("cloudflare.com", u), jsdelivr_urls)
+
+        cloudflare_urls = WebAssets.list(domain="cloudflare.com")
+        @test length(filter(u -> occursin("cloudflare.com", u), cloudflare_urls)) == 1
+        @test !any(u -> occursin("jsdelivr.net", u), cloudflare_urls)
+
+        # Test subdomain filter
+        cdn_urls = WebAssets.list(subdomain="cdn")
+        @test any(u -> occursin("cdn.jsdelivr.net", u), cdn_urls)
+        @test !any(u -> occursin("unpkg.com", u), cdn_urls)
+        @test !any(u -> occursin("cdnjs.cloudflare.com", u), cdn_urls)
+
+        cdnjs_urls = WebAssets.list(subdomain="cdnjs")
+        @test length(cdnjs_urls) >= 1
+        @test all(u -> startswith(WebAssets.gethost(u), "cdnjs."), cdnjs_urls)
+
+        ga_urls = WebAssets.list(subdomain="ga")
+        @test length(ga_urls) >= 1
+        @test all(u -> startswith(WebAssets.gethost(u), "ga."), ga_urls)
+
+        # Test combined domain and subdomain filter
+        cdnjs_cloudflare_urls = WebAssets.list(domain="cloudflare.com", subdomain="cdnjs")
+        @test length(cdnjs_cloudflare_urls) == 1
+        @test occursin("cdnjs.cloudflare.com", cdnjs_cloudflare_urls[1])
+
+        # Test with Module argument
+        cdn_urls_module = WebAssets.list(TestPkg, subdomain="cdn")
+        @test cdn_urls_module isa Vector{String}
+
+        # Clean up
+        for url in urls
+            WebAssets.remove(url)
+        end
+    end
+
+    @testset "gethost helper" begin
+        @test WebAssets.gethost("https://example.com/path") == "example.com"
+        @test WebAssets.gethost("https://cdn.example.com/path/file.js") == "cdn.example.com"
+        @test WebAssets.gethost("http://api.example.com:8080/data") == "api.example.com"
+        @test WebAssets.gethost("https://sub.domain.example.com/") == "sub.domain.example.com"
+        @test WebAssets.gethost("ftp://files.example.com/file.txt") == "files.example.com"
+        @test WebAssets.gethost("invalid-url") == ""
+        @test WebAssets.gethost("example.com/path") == ""
+    end
+
     @testset "info" begin
         # Ensure MODULE is set
         WebAssets.MODULE[] = Main

@@ -36,10 +36,23 @@ function add(m::Module, url; force::Bool=false)
 end
 
 #-----------------------------------------------------------------------------# list
-function list()
-    path2url.(readdir(dir()))
+function gethost(url::AbstractString)
+    m = match(r"^[a-z]+://([^/:]+)", url)
+    return isnothing(m) ? "" : m.captures[1]
 end
-list(m::Module) = path2url.(readdir(dir(m)))
+
+function list(; domain::AbstractString="", subdomain::AbstractString="")
+    urls = path2url.(readdir(dir()))
+    !isempty(domain) && filter!(u -> occursin(domain, gethost(u)), urls)
+    !isempty(subdomain) && filter!(u -> startswith(gethost(u), subdomain * "."), urls)
+    return urls
+end
+function list(m::Module; domain::AbstractString="", subdomain::AbstractString="")
+    urls = path2url.(readdir(dir(m)))
+    !isempty(domain) && filter!(u -> occursin(domain, gethost(u)), urls)
+    !isempty(subdomain) && filter!(u -> startswith(gethost(u), subdomain * "."), urls)
+    return urls
+end
 
 #-----------------------------------------------------------------------------# remove
 function remove(url)
