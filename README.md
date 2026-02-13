@@ -1,6 +1,10 @@
+[![CI](https://github.com/joshday/WebAssets.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/joshday/WebAssets.jl/actions/workflows/CI.yml)
+[![Docs Build](https://github.com/joshday/WebAssets.jl/actions/workflows/Docs.yml/badge.svg)](https://github.com/joshday/WebAssets.jl/actions/workflows/Docs.yml)
+[![Stable Docs](https://img.shields.io/badge/docs-stable-blue)](https://joshday.github.io/WebAssets.jl/stable/)
+[![Dev Docs](https://img.shields.io/badge/docs-dev-blue)](https://joshday.github.io/WebAssets.jl/dev/)
+
 # WebAssets
 
-[![Build Status](https://github.com/joshday/WebAssets.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/joshday/WebAssets.jl/actions/workflows/CI.yml?query=branch%3Amain)
 
 
 **WebAssets** provides a simple API for managing local versions of files based on URLs.  Files are cached in your scratchspace for future use.
