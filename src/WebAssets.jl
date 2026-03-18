@@ -4,20 +4,9 @@ import Downloads: download
 using Dates, Scratch, StyledStrings
 
 #-----------------------------------------------------------------------------# dir
-const MODULE = Ref(Main)
-const _scratch_dir = Ref{String}()
+const MODULE = Ref{Module}(Main)
 
-function __init__()
-    _scratch_dir[] = Scratch.get_scratch!(@__MODULE__, "cache")
-end
-
-"Return the scratch directory for module `m` (default: `MODULE[]`)."
-function dir(m::Module = MODULE[])
-    uuid = something(Base.PkgId(m).uuid, Base.UUID(UInt128(0)))
-    d = joinpath(_scratch_dir[], string(uuid))
-    isdir(d) || mkpath(d)
-    return d
-end
+dir(m::Module = MODULE[]) = Scratch.get_scratch!(m, "WebAssets_cache")
 
 #-----------------------------------------------------------------------------# url2filename
 const charmap = (':' => 'C', '/' => 'S', '?' => 'Q', '{' => 'L', '}' => 'R', '#' => 'H', '%' => 'P',

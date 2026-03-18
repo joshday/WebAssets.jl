@@ -3,7 +3,7 @@
 [![Build Status](https://github.com/joshday/WebAssets.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/joshday/WebAssets.jl/actions/workflows/CI.yml?query=branch%3Amain)
 
 
-**WebAssets** provides a simple API for managing local versions of files based on URLs.  Files are cached in your scratchspace for future use.
+**WebAssets** provides a simple API for caching URL-based files in your scratchspace.
 
 ## Usage
 
@@ -72,19 +72,4 @@ path2 = WebAssets.@download "https://example.com/data.json" verbose=true
 
 # Specifying `output` is an error — it is managed by WebAssets
 WebAssets.@download "https://example.com/data.json" output="/tmp/foo"  # ERROR
-```
-
-## Using a Different Package's Scratchspace
-
-- Methods that accept a `Module` argument are available for managing assets within a specific scratchspace (default is `Main`).
-- Alternatively, set the `WebAssets.MODULE` Ref, e.g. `WebAssets.MODULE[] = @__MODULE__`.
-
-```julia
-WebAssets.add(@__MODULE__, "https://example.com/asset.js")
-
-WebAssets.list(@__MODULE__)
-
-WebAssets.info(@__MODULE__)
-
-WebAssets.remove(@__MODULE__, "https://example.com/asset.js")
 ```

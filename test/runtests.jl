@@ -313,6 +313,7 @@ const TEST_URL = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstra
         @test !isfile(path)
         @test lowercase(TEST_URL) ∉ WebAssets.list(TestPkg)
     end
+
 end
 
 end # module
