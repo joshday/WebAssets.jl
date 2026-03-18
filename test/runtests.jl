@@ -238,23 +238,43 @@ const TEST_URL = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstra
 
         WebAssets.remove(TEST_URL)
         WebAssets.add(TEST_URL)
+        dl_path = WebAssets.@download TEST_URL
 
         infos = WebAssets.info()
         @test infos isa Vector{WebAssets.Info}
         @test !isempty(infos)
 
-        test_info = filter(i -> i.url == lowercase(TEST_URL), infos)
-        @test length(test_info) == 1
-
-        i = test_info[1]
-        @test i.url == lowercase(TEST_URL)
+        # URL-cached file: path2url round-trips to the original URL
+        url_info = filter(i -> WebAssets.path2url(i.path) == lowercase(TEST_URL), infos)
+        @test length(url_info) == 1
+        i = url_info[1]
+        @test isfile(i.path)
         @test i.downloaded isa DateTime
         @test i.size > 0
 
-        # show method includes url
+        # show displays the URL for url-derived filenames
         io = IOBuffer()
         show(io, i)
-        @test occursin(i.url, String(take!(io)))
+        @test occursin(lowercase(TEST_URL), String(take!(io)))
+
+        # @download cached file: filename is a hash, not url-derived
+        dl_info = filter(i -> i.path == dl_path, infos)
+        @test length(dl_info) == 1
+        j = dl_info[1]
+        @test isfile(j.path)
+        @test j.downloaded isa DateTime
+        @test j.size > 0
+
+        # show displays the path (not a URL) for hash-based filenames
+        io = IOBuffer()
+        show(io, j)
+        shown = String(take!(io))
+        @test occursin(j.path, shown)
+        @test !occursin("://", shown[1:min(10,end)])  # doesn't start with a URL scheme
+
+        # remove(::Info) deletes the file
+        WebAssets.remove(j)
+        @test !isfile(j.path)
 
         WebAssets.remove(TEST_URL)
     end
@@ -265,7 +285,7 @@ const TEST_URL = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstra
 
         result = WebAssets.@info
         @test result isa Vector{WebAssets.Info}
-        @test any(i -> i.url == lowercase(TEST_URL), result)
+        @test any(i -> WebAssets.path2url(i.path) == lowercase(TEST_URL), result)
 
         WebAssets.remove(TEST_URL)
     end
@@ -281,7 +301,7 @@ const TEST_URL = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstra
 
         infos = WebAssets.info(TestPkg)
         @test infos isa Vector{WebAssets.Info}
-        @test any(i -> i.url == lowercase(TEST_URL), infos)
+        @test any(i -> WebAssets.path2url(i.path) == lowercase(TEST_URL), infos)
 
         mtime_before = mtime(path)
         sleep(0.1)

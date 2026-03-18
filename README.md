@@ -13,6 +13,9 @@ using WebAssets
 # Download file (if necessary) to scratchspace and return the path
 path = WebAssets.add("https://cdn.plot.ly/plotly-2.24.0.min.js")
 
+# Keyword arguments are forwarded to Downloads.download
+path = WebAssets.add("https://cdn.plot.ly/plotly-2.24.0.min.js"; timeout=30.0)
+
 # List asset URLs
 WebAssets.list()
 # 1-element Vector{String}:
@@ -26,8 +29,9 @@ WebAssets.info()
 # Force a re-download
 WebAssets.add("https://cdn.plot.ly/plotly-2.24.0.min.js"; force=true)
 
-# Delete the downloaded file
+# Delete the downloaded file by URL or by Info
 WebAssets.remove("https://cdn.plot.ly/plotly-2.24.0.min.js")
+WebAssets.remove(WebAssets.info()[1])
 
 # Filter list by domain or subdomain
 WebAssets.list(domain="plot.ly")
@@ -39,9 +43,10 @@ WebAssets.list(subdomain="cdn")
 Each macro is equivalent to its function counterpart but automatically uses `@__MODULE__`'s scratchspace instead of `Main`.
 
 ```julia
-# @add — download and cache a URL
+# @add — download and cache a URL (kwargs forwarded to Downloads.download)
 path = WebAssets.@add "https://cdn.plot.ly/plotly-2.24.0.min.js"
 path = WebAssets.@add "https://cdn.plot.ly/plotly-2.24.0.min.js" force=true
+path = WebAssets.@add "https://cdn.plot.ly/plotly-2.24.0.min.js" timeout=30.0
 
 # @remove — delete a cached file
 WebAssets.@remove "https://cdn.plot.ly/plotly-2.24.0.min.js"
