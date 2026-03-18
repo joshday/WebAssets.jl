@@ -7,6 +7,8 @@ using Dates
 # Dummy module for testing Module-based methods
 module TestPkg end
 
+const TEST_URL = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+
 @testset "WebAssets" begin
     @testset "charmap has no duplicate values" begin
         values = last.(WebAssets.charmap)
@@ -14,7 +16,6 @@ module TestPkg end
     end
 
     @testset "dir" begin
-        # dir with explicit module
         @test isdir(WebAssets.dir(Main))
         @test isdir(WebAssets.dir(TestPkg))
         # Unregistered modules (without package UUID) share the same scratch space
@@ -22,7 +23,6 @@ module TestPkg end
     end
 
     @testset "MODULE ref" begin
-        # Set the default module
         WebAssets.MODULE[] = Main
         @test WebAssets.MODULE[] === Main
         @test WebAssets.dir() == WebAssets.dir(Main)
@@ -55,7 +55,6 @@ module TestPkg end
     end
 
     @testset "url2path / path2url round-trip" begin
-        # Ensure MODULE is set for dir() to work
         WebAssets.MODULE[] = Main
 
         url = "https://example.com/style.css"
@@ -74,44 +73,88 @@ module TestPkg end
     end
 
     @testset "add, list, remove" begin
-        # Ensure MODULE is set for functions without explicit module
         WebAssets.MODULE[] = Main
 
-        test_url = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        WebAssets.remove(TEST_URL)
+        @test lowercase(TEST_URL) ∉ WebAssets.list()
 
-        # Clean up if exists from previous test
-        WebAssets.remove(test_url)
-        @test lowercase(test_url) ∉ WebAssets.list()
-
-        # Add
-        path = WebAssets.add(test_url)
+        path = WebAssets.add(TEST_URL)
         @test isfile(path)
-        @test lowercase(test_url) ∈ WebAssets.list()
+        @test lowercase(TEST_URL) ∈ WebAssets.list()
 
-        # Add again (should not re-download, same path returned)
-        path2 = WebAssets.add(test_url)
+        # Cached: same path, no re-download
+        path2 = WebAssets.add(TEST_URL)
         @test path == path2
 
-        # Add with force=true (should re-download)
+        # force=true re-downloads
         mtime_before = mtime(path)
-        sleep(0.1)  # Ensure time difference
-        path3 = WebAssets.add(test_url; force=true)
+        sleep(0.1)
+        path3 = WebAssets.add(TEST_URL; force=true)
         @test path == path3
         @test mtime(path3) > mtime_before
 
-        # Remove
-        WebAssets.remove(test_url)
+        WebAssets.remove(TEST_URL)
         @test !isfile(path)
-        @test lowercase(test_url) ∉ WebAssets.list()
+        @test lowercase(TEST_URL) ∉ WebAssets.list()
 
-        # Remove non-existent file (should not error)
-        WebAssets.remove(test_url)
+        # Removing non-existent file does not error
+        WebAssets.remove(TEST_URL)
+    end
+
+    @testset "@add macro" begin
+        WebAssets.MODULE[] = Main
+
+        WebAssets.remove(TEST_URL)
+
+        path = WebAssets.@add TEST_URL
+        @test isfile(path)
+        @test startswith(path, WebAssets.dir(@__MODULE__))
+        @test lowercase(TEST_URL) ∈ WebAssets.list()
+
+        # force=true
+        mtime_before = mtime(path)
+        sleep(0.1)
+        path2 = WebAssets.@add TEST_URL force=true
+        @test path == path2
+        @test mtime(path2) > mtime_before
+
+        WebAssets.@remove TEST_URL
+        @test !isfile(path)
+    end
+
+    @testset "@download macro" begin
+        path = WebAssets.@download TEST_URL
+        @test isfile(path)
+        @test startswith(path, WebAssets.dir(@__MODULE__))
+
+        # Cached: same path returned without re-download
+        path2 = WebAssets.@download TEST_URL
+        @test path == path2
+
+        # Different URL → different cache key → different path
+        other_url = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+        path3 = WebAssets.@download other_url
+        @test path3 != path
+
+        # Different kwargs → different cache key
+        key_plain  = string(hash(("Downloads.download", TEST_URL, (;))), base=16)
+        key_with_kw = string(hash(("Downloads.download", TEST_URL, (; verbose=true))), base=16)
+        @test key_plain != key_with_kw
+        @test endswith(path, key_plain)
+
+        # Specifying output is a compile-time error
+        @test_throws Exception macroexpand(@__MODULE__,
+            :(WebAssets.@download "https://example.com" output="/tmp/foo"))
+
+        rm(path)
+        rm(path3)
+        @test !isfile(path)
+        @test !isfile(path3)
     end
 
     @testset "list with domain and subdomain filters" begin
         WebAssets.MODULE[] = Main
 
-        # Test URLs with different domains and subdomains
         urls = [
             "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css",
             "https://unpkg.com/react@18/umd/react.production.min.js",
@@ -119,23 +162,19 @@ module TestPkg end
             "https://ga.jspm.io/npm:es-module-shims@1.5.1/dist/es-module-shims.js",
         ]
 
-        # Clean up and add all test URLs
         for url in urls
             WebAssets.remove(url)
-        end
-        for url in urls
             WebAssets.add(url)
         end
 
-        # Test no filters returns all
         all_urls = WebAssets.list()
         for url in urls
             @test lowercase(url) ∈ all_urls
         end
 
-        # Test domain filter
+        # domain filter
         jsdelivr_urls = WebAssets.list(domain="jsdelivr.net")
-        @test length(filter(u -> occursin("jsdelivr.net", u), jsdelivr_urls)) >= 1
+        @test any(u -> occursin("jsdelivr.net", u), jsdelivr_urls)
         @test !any(u -> occursin("unpkg.com", u), jsdelivr_urls)
         @test !any(u -> occursin("cloudflare.com", u), jsdelivr_urls)
 
@@ -143,7 +182,7 @@ module TestPkg end
         @test length(filter(u -> occursin("cloudflare.com", u), cloudflare_urls)) == 1
         @test !any(u -> occursin("jsdelivr.net", u), cloudflare_urls)
 
-        # Test subdomain filter
+        # subdomain filter
         cdn_urls = WebAssets.list(subdomain="cdn")
         @test any(u -> occursin("cdn.jsdelivr.net", u), cdn_urls)
         @test !any(u -> occursin("unpkg.com", u), cdn_urls)
@@ -157,19 +196,31 @@ module TestPkg end
         @test length(ga_urls) >= 1
         @test all(u -> startswith(WebAssets.gethost(u), "ga."), ga_urls)
 
-        # Test combined domain and subdomain filter
+        # combined domain + subdomain filter
         cdnjs_cloudflare_urls = WebAssets.list(domain="cloudflare.com", subdomain="cdnjs")
         @test length(cdnjs_cloudflare_urls) == 1
         @test occursin("cdnjs.cloudflare.com", cdnjs_cloudflare_urls[1])
 
-        # Test with Module argument
-        cdn_urls_module = WebAssets.list(TestPkg, subdomain="cdn")
-        @test cdn_urls_module isa Vector{String}
-
-        # Clean up
         for url in urls
             WebAssets.remove(url)
         end
+    end
+
+    @testset "@list macro" begin
+        WebAssets.MODULE[] = Main
+        WebAssets.add(TEST_URL)
+
+        result = WebAssets.@list
+        @test result isa Vector{String}
+        @test lowercase(TEST_URL) ∈ result
+
+        result_filtered = WebAssets.@list domain="jsdelivr.net"
+        @test all(u -> occursin("jsdelivr.net", u), result_filtered)
+
+        result_subdomain = WebAssets.@list subdomain="cdn"
+        @test all(u -> startswith(WebAssets.gethost(u), "cdn."), result_subdomain)
+
+        WebAssets.remove(TEST_URL)
     end
 
     @testset "gethost helper" begin
@@ -183,68 +234,64 @@ module TestPkg end
     end
 
     @testset "info" begin
-        # Ensure MODULE is set
         WebAssets.MODULE[] = Main
 
-        test_url = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        WebAssets.remove(TEST_URL)
+        WebAssets.add(TEST_URL)
 
-        # Clean up and add
-        WebAssets.remove(test_url)
-        WebAssets.add(test_url)
-
-        # Test info()
         infos = WebAssets.info()
         @test infos isa Vector{WebAssets.Info}
         @test !isempty(infos)
 
-        # Find our test file in the info list
-        test_info = filter(i -> i.url == lowercase(test_url), infos)
+        test_info = filter(i -> i.url == lowercase(TEST_URL), infos)
         @test length(test_info) == 1
 
-        info = test_info[1]
-        @test info.url == lowercase(test_url)
-        @test info.downloaded isa DateTime
-        @test info.size > 0
+        i = test_info[1]
+        @test i.url == lowercase(TEST_URL)
+        @test i.downloaded isa DateTime
+        @test i.size > 0
 
-        # Test show method
+        # show method includes url
         io = IOBuffer()
-        show(io, info)
-        output = String(take!(io))
-        @test occursin(info.url, output)
+        show(io, i)
+        @test occursin(i.url, String(take!(io)))
 
-        # Clean up
-        WebAssets.remove(test_url)
+        WebAssets.remove(TEST_URL)
+    end
+
+    @testset "@info macro" begin
+        WebAssets.MODULE[] = Main
+        WebAssets.add(TEST_URL)
+
+        result = WebAssets.@info
+        @test result isa Vector{WebAssets.Info}
+        @test any(i -> i.url == lowercase(TEST_URL), result)
+
+        WebAssets.remove(TEST_URL)
     end
 
     @testset "Module-based methods" begin
-        test_url = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        WebAssets.remove(TestPkg, TEST_URL)
+        @test lowercase(TEST_URL) ∉ WebAssets.list(TestPkg)
 
-        # Clean up
-        WebAssets.remove(TestPkg, test_url)
-        @test lowercase(test_url) ∉ WebAssets.list(TestPkg)
-
-        # Add using Module argument
-        path = WebAssets.add(TestPkg, test_url)
+        path = WebAssets.add(TestPkg, TEST_URL)
         @test isfile(path)
         @test startswith(path, WebAssets.dir(TestPkg))
-        @test lowercase(test_url) ∈ WebAssets.list(TestPkg)
+        @test lowercase(TEST_URL) ∈ WebAssets.list(TestPkg)
 
-        # Test info with Module
         infos = WebAssets.info(TestPkg)
         @test infos isa Vector{WebAssets.Info}
-        @test any(i -> i.url == lowercase(test_url), infos)
+        @test any(i -> i.url == lowercase(TEST_URL), infos)
 
-        # Add with force=true
         mtime_before = mtime(path)
         sleep(0.1)
-        path2 = WebAssets.add(TestPkg, test_url; force=true)
+        path2 = WebAssets.add(TestPkg, TEST_URL; force=true)
         @test path == path2
         @test mtime(path2) > mtime_before
 
-        # Remove using Module argument
-        WebAssets.remove(TestPkg, test_url)
+        WebAssets.remove(TestPkg, TEST_URL)
         @test !isfile(path)
-        @test lowercase(test_url) ∉ WebAssets.list(TestPkg)
+        @test lowercase(TEST_URL) ∉ WebAssets.list(TestPkg)
     end
 end
 

@@ -28,12 +28,51 @@ WebAssets.add("https://cdn.plot.ly/plotly-2.24.0.min.js"; force=true)
 
 # Delete the downloaded file
 WebAssets.remove("https://cdn.plot.ly/plotly-2.24.0.min.js")
+
+# Filter list by domain or subdomain
+WebAssets.list(domain="plot.ly")
+WebAssets.list(subdomain="cdn")
+```
+
+## Macros
+
+Each macro is equivalent to its function counterpart but automatically uses `@__MODULE__`'s scratchspace instead of `Main`.
+
+```julia
+# @add — download and cache a URL
+path = WebAssets.@add "https://cdn.plot.ly/plotly-2.24.0.min.js"
+path = WebAssets.@add "https://cdn.plot.ly/plotly-2.24.0.min.js" force=true
+
+# @remove — delete a cached file
+WebAssets.@remove "https://cdn.plot.ly/plotly-2.24.0.min.js"
+
+# @list — list cached asset URLs
+WebAssets.@list
+WebAssets.@list domain="plot.ly"
+WebAssets.@list subdomain="cdn"
+
+# @info — get metadata for cached assets
+WebAssets.@info
+```
+
+### `@download`
+
+`@download` wraps `Downloads.download` directly, caching by a hash of all arguments rather than the URL string. Use this when you need to pass extra options to `Downloads.download`.
+
+```julia
+path = WebAssets.@download "https://example.com/data.json"
+
+# Different kwargs produce a separate cache entry
+path2 = WebAssets.@download "https://example.com/data.json" verbose=true
+
+# Specifying `output` is an error — it is managed by WebAssets
+WebAssets.@download "https://example.com/data.json" output="/tmp/foo"  # ERROR
 ```
 
 ## Using a Different Package's Scratchspace
 
 - Methods that accept a `Module` argument are available for managing assets within a specific scratchspace (default is `Main`).
-- Alternativly, set the `WebAssets.MODULE` Ref, e.g. `WebAssets.MODULE[] = @__MODULE__`.
+- Alternatively, set the `WebAssets.MODULE` Ref, e.g. `WebAssets.MODULE[] = @__MODULE__`.
 
 ```julia
 WebAssets.add(@__MODULE__, "https://example.com/asset.js")
