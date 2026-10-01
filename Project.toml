@@ -11,7 +11,7 @@ StyledStrings = "f489334b-da3d-4c2e-b8f0-e476e12c162b"
 
 [compat]
 Dates = "1.11.0"
-Downloads = "1.7.0"
+Downloads = "<0.0.1, 1.4, 1.7.0"
 Scratch = "1.0"
 StyledStrings = "1.11.0"
 julia = "1"
