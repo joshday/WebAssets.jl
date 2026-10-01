@@ -10,7 +10,7 @@ Scratch = "6c6a2e73-6563-6170-7368-637461726353"
 StyledStrings = "f489334b-da3d-4c2e-b8f0-e476e12c162b"
 
 [compat]
-Dates = "1.11.0"
+Dates = "<0.0.1, 1, 1.11.0"
 Downloads = "1.7.0"
 Scratch = "1.0"
 StyledStrings = "1.11.0"
