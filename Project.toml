@@ -1,6 +1,6 @@
 name = "WebAssets"
 uuid = "5318a24a-cfbb-471b-80de-2ec25d7c2d8b"
-version = "2.0.1"
+version = "2.1.0"
 authors = ["Josh Day <emailjoshday@gmail.com> and contributors"]
 
 [deps]
@@ -14,7 +14,7 @@ Dates = "<0.0.1, 1"
 Downloads = "1.4"
 Scratch = "1.0"
 StyledStrings = "1"
-julia = "1"
+julia = "1.10"
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
